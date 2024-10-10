@@ -15,6 +15,19 @@ class ShortURLViewSet(
     serializer_class = URLSerializer
 
 
+class RedirectView(APIView):
+    renderer_classes = [TemplateHTMLRenderer]
+    authentication_classes = []
+    template_name = "redirect.html"
+
+    def get(self, request, short_key):
+        try:
+            obj = ShortURL.objects.get(short_key=short_key)
+            return Response({"url": obj.url})
+        except ShortURL.DoesNotExist:
+            return Response({}, template_name="404.html")
+
+
 class HomeView(APIView):
     renderer_classes = [TemplateHTMLRenderer]
     template_name = "index.html"
