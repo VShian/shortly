@@ -2,7 +2,7 @@
 
 ## Setup
 
-Create local environment
+Create virtual environment
 
 ```
 python3 -m pip install virtualenv
@@ -26,4 +26,32 @@ python manage.py migrate
 
 ```
 python manage.py runserver
+```
+
+## Deployment (Ubuntu)
+
+Install supervisor
+
+```
+sudo apt update && sudo apt install supervisor
+```
+
+Install production dependencies
+
+```
+pip install -r requirements-prod.txt
+```
+
+Copy supervisor.conf file in to `/etc/supervisor/conf.d/`
+
+_Note:_ Verify and update `command` and `directory` values in conf file if required
+
+```
+sudo cp supervisor.conf /etc/supervisor/conf.d/shortly.conf
+```
+
+Run start servers cript
+
+```
+./start-server.sh
 ```
