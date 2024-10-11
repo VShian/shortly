@@ -12,11 +12,17 @@ class ShortURLViewSetTestCase(APITestCase):
         self.url = "https://example.com"
         self.obj = ShortURL.objects.create(url=self.url, short_key="abc123")
 
-    def test_create_short_url(self):
+    def test_create_new_short_url(self):
         data = {"url": "https://new-example.com"}
         response = self.client.post(reverse("short-url-list"), data)
         self.assertEqual(response.status_code, 201)
         self.assertTrue(ShortURL.objects.filter(url=data["url"]).exists())
+
+    def test_create_existing_short_url(self):
+        data = {"url": self.url}
+        response = self.client.post(reverse("short-url-list"), data)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["url"], self.url)
 
     def test_retrieve_short_url(self):
         response = self.client.get(

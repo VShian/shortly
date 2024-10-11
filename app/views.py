@@ -1,4 +1,4 @@
-from rest_framework import mixins, viewsets
+from rest_framework import mixins, status, viewsets
 from rest_framework.renderers import TemplateHTMLRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -13,6 +13,15 @@ class ShortURLViewSet(
 ):
     queryset = ShortURL.objects.all()
     serializer_class = URLSerializer
+
+    def create(self, request, *args, **kwargs):
+        if ShortURL.objects.filter(url=request.data["url"]).exists():
+            obj = ShortURL.objects.get(url=request.data["url"])
+            return Response(
+                {"short_url": get_short_url(obj, self.request), "url": obj.url},
+                status=status.HTTP_200_OK,
+            )
+        return super().create(request, *args, **kwargs)
 
 
 class RedirectView(APIView):
