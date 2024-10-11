@@ -28,6 +28,7 @@ DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
 
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "").split(",")
 
+USE_X_FORWARDED_HOST = True
 
 # Application definition
 
