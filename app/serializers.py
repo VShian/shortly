@@ -12,7 +12,12 @@ class URLSerializer(serializers.ModelSerializer):
         model = ShortURL
         fields = [
             "short_url",
+            "short_key",
             "url",
+        ]
+        read_only_fields = [
+            "short_url",
+            "short_key",
         ]
 
     def get_short_url(self, obj):

@@ -9,18 +9,37 @@ from .utils import generate_short_key, get_short_url
 
 
 class ShortURLViewSet(
-    mixins.CreateModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    mixins.RetrieveModelMixin,
+    viewsets.GenericViewSet,
 ):
     queryset = ShortURL.objects.all()
     serializer_class = URLSerializer
 
-    def create(self, request, *args, **kwargs):
-        if ShortURL.objects.filter(url=request.data["url"]).exists():
-            obj = ShortURL.objects.get(url=request.data["url"])
+    def list(self, request, *args, **kwargs):
+        url = request.query_params.get("url")
+
+        if not url:
             return Response(
-                {"short_url": get_short_url(obj, self.request), "url": obj.url},
-                status=status.HTTP_200_OK,
+                {"detail": "URL query parameter is required."},
+                status=status.HTTP_400_BAD_REQUEST,
             )
+
+        if ShortURL.objects.filter(url=url).exists():
+            obj = ShortURL.objects.get(url=url)
+            serializer = self.serializer_class(obj, context={"request": request})
+            return Response(serializer.data)
+
+        return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    def create(self, request, *args, **kwargs):
+        url = request.data.get("url")
+        if ShortURL.objects.filter(url=url).exists():
+            obj = ShortURL.objects.get(url=url)
+            serializer = self.serializer_class(obj, context={"request": request})
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
         return super().create(request, *args, **kwargs)
 
 

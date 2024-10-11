@@ -24,10 +24,52 @@ class ShortURLViewSetTestCase(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["url"], self.url)
 
+    def test_create_short_url_missing_url(self):
+        data = {}
+        response = self.client.post(reverse("short-url-list"), data)
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("This field is required.", response.data["url"])
+
+    def test_create_short_url_invalid_format(self):
+        # Test with an invalid URL format
+        data = {"url": "not-a-valid-url"}
+        response = self.client.post(reverse("short-url-list"), data)
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("Enter a valid URL.", response.data["url"])
+
     def test_retrieve_short_url(self):
         response = self.client.get(
             reverse("short-url-detail", kwargs={"pk": self.obj.short_key})
         )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["url"], self.url)
+
+    def test_get_short_url_not_found(self):
+        response = self.client.get(
+            reverse("short-url-detail", kwargs={"pk": "invalid"})
+        )
+        self.assertEqual(response.status_code, 404)
+
+    def test_get_short_url_by_url_in_query(self):
+        response = self.client.get(
+            reverse("short-url-list"), QUERY_STRING=f"url={self.url}"
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["url"], self.url)
+
+    def test_get_short_url_by_url_in_query_not_found(self):
+        response = self.client.get(
+            reverse("short-url-list"), QUERY_STRING="url=invalid"
+        )
+        self.assertEqual(response.status_code, 404)
+
+    def test_get_short_url_by_url_in_query_missing_url(self):
+        response = self.client.get(reverse("short-url-list"))
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("URL query parameter is required.", response.data["detail"])
+
+    def test_get_short_url_by_url_in_post_data(self):
+        response = self.client.post(reverse("short-url-list"), {"url": self.url})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["url"], self.url)
 
@@ -51,6 +93,12 @@ class RedirectViewTestCase(TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "404.html")
+
+    def test_redirect_with_post(self):
+        response = self.client.post(
+            reverse("redirect-url", kwargs={"short_key": "abc123"})
+        )
+        self.assertEqual(response.status_code, 405)
 
 
 class HomeViewTestCase(TestCase):
